@@ -81,9 +81,12 @@ export function useCreateTask() {
       assigned_to?: string;
       estimated_hours?: number;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('tasks')
-        .insert([task])
+        .insert([{ ...task, user_id: user.id }])
         .select()
         .single();
       

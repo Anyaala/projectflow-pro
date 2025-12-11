@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
 import { useTasks } from '@/hooks/useTasks';
 import { useProjects } from '@/hooks/useProjects';
 import { useProposals } from '@/hooks/useProposals';
+import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/tracker/Sidebar';
 import { DashboardView } from '@/components/tracker/DashboardView';
 import { KanbanView } from '@/components/tracker/KanbanView';
@@ -14,10 +16,13 @@ import { AnalyticsView } from '@/components/tracker/AnalyticsView';
 import { ActivityView } from '@/components/tracker/ActivityView';
 import { TaskDetailDrawer } from '@/components/tracker/TaskDetailDrawer';
 import { Task } from '@/types/tracker';
+import { Loader2 } from 'lucide-react';
 
 export type ViewType = 'dashboard' | 'projects' | 'kanban' | 'gantt' | 'calendar' | 'proposals' | 'analytics' | 'activity';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -26,6 +31,24 @@ const Index = () => {
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(selectedProjectId);
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { data: proposals = [], isLoading: proposalsLoading } = useProposals();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const isLoading = metricsLoading || tasksLoading || projectsLoading || proposalsLoading;
 

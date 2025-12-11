@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Kanban, Calendar, FileText, BarChart3, Activity, FolderOpen, Plus, GanttChart, Folder } from 'lucide-react';
+import { LayoutDashboard, Kanban, Calendar, FileText, BarChart3, Activity, FolderOpen, Plus, GanttChart, Folder, LogOut, User } from 'lucide-react';
 import { ViewType } from '@/pages/Index';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateProject } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   activeView: ViewType;
@@ -28,6 +30,16 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '', color: '#06b6d4' });
   const createProject = useCreateProject();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Error signing out');
+    } else {
+      toast.success('Signed out successfully');
+    }
+  };
 
   const handleCreateProject = () => {
     if (newProject.name.trim()) {
@@ -77,7 +89,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border/50">
+      <div className="p-4 border-t border-border/50 space-y-3">
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button className="w-full gap-2" size="sm">
@@ -129,6 +141,19 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
             </div>
           </DialogContent>
         </Dialog>
+        
+        {/* User section */}
+        <div className="flex items-center gap-2 px-2 py-2 rounded-lg bg-muted/30">
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+            <User className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">{user?.email}</p>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleSignOut}>
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </aside>
   );
