@@ -73,6 +73,7 @@ export function useCreateProposal() {
       project_id?: string;
       stage?: ProposalStage;
       probability_to_close?: number;
+      draft_date?: string;
     }) => {
       const { data, error } = await supabase
         .from('proposals')
