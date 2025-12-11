@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Kanban, Calendar, FileText, BarChart3, Activity, FolderOpen, Plus } from 'lucide-react';
+import { LayoutDashboard, Kanban, Calendar, FileText, BarChart3, Activity, FolderOpen, Plus, GanttChart, Folder } from 'lucide-react';
 import { ViewType } from '@/pages/Index';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,9 @@ interface SidebarProps {
 
 const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'projects', label: 'Projects', icon: Folder },
   { id: 'kanban', label: 'Kanban Board', icon: Kanban },
+  { id: 'gantt', label: 'Gantt Chart', icon: GanttChart },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
   { id: 'proposals', label: 'Proposals', icon: FileText },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -53,7 +55,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeView === item.id;
