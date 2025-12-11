@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { LayoutDashboard, Kanban, Calendar, FileText, BarChart3, Activity, FolderOpen, Plus } from 'lucide-react';
 import { ViewType } from '@/pages/Index';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useCreateProject } from '@/hooks/useProjects';
 
 interface SidebarProps {
   activeView: ViewType;
@@ -18,6 +23,22 @@ const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
 ];
 
 export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newProject, setNewProject] = useState({ name: '', description: '', color: '#06b6d4' });
+  const createProject = useCreateProject();
+
+  const handleCreateProject = () => {
+    if (newProject.name.trim()) {
+      createProject.mutate({
+        name: newProject.name,
+        description: newProject.description,
+        color: newProject.color,
+      });
+      setNewProject({ name: '', description: '', color: '#06b6d4' });
+      setIsCreateOpen(false);
+    }
+  };
+
   return (
     <aside className="w-64 border-r border-border/50 bg-sidebar flex flex-col" style={{ background: 'var(--gradient-sidebar)' }}>
       <div className="p-6">
@@ -55,10 +76,57 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-border/50">
-        <Button className="w-full gap-2" size="sm">
-          <Plus className="w-4 h-4" />
-          New Project
-        </Button>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full gap-2" size="sm">
+              <Plus className="w-4 h-4" />
+              New Project
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="glass-elevated border-border/50">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+              <DialogDescription>Add a new project to organize your tasks and proposals.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Project Name</label>
+                <Input
+                  placeholder="Enter project name"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Description</label>
+                <Textarea
+                  placeholder="Describe your project (optional)"
+                  value={newProject.description}
+                  onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Color</label>
+                <div className="flex gap-2">
+                  {['#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ec4899', '#3b82f6', '#ef4444'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setNewProject({ ...newProject, color })}
+                      className={cn(
+                        'w-8 h-8 rounded-full transition-all',
+                        newProject.color === color && 'ring-2 ring-offset-2 ring-offset-background ring-primary'
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleCreateProject} className="w-full" disabled={!newProject.name.trim()}>
+                Create Project
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </aside>
   );
