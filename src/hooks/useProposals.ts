@@ -75,9 +75,12 @@ export function useCreateProposal() {
       probability_to_close?: number;
       draft_date?: string;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('proposals')
-        .insert([proposal])
+        .insert([{ ...proposal, user_id: user.id }])
         .select()
         .single();
       

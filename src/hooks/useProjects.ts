@@ -40,9 +40,12 @@ export function useCreateProject() {
   
   return useMutation({
     mutationFn: async (project: { name: string; description?: string; color?: string; start_date?: string; end_date?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
       const { data, error } = await supabase
         .from('projects')
-        .insert([project])
+        .insert([{ ...project, user_id: user.id }])
         .select()
         .single();
       

@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           color: string | null
@@ -55,6 +82,7 @@ export type Database = {
           name: string
           start_date: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           color?: string | null
@@ -66,6 +94,7 @@ export type Database = {
           name: string
           start_date?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           color?: string | null
@@ -77,6 +106,7 @@ export type Database = {
           name?: string
           start_date?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -99,6 +129,7 @@ export type Database = {
           stage: Database["public"]["Enums"]["proposal_stage"] | null
           title: string
           updated_at: string
+          user_id: string | null
           value: number | null
         }
         Insert: {
@@ -119,6 +150,7 @@ export type Database = {
           stage?: Database["public"]["Enums"]["proposal_stage"] | null
           title: string
           updated_at?: string
+          user_id?: string | null
           value?: number | null
         }
         Update: {
@@ -139,6 +171,7 @@ export type Database = {
           stage?: Database["public"]["Enums"]["proposal_stage"] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
           value?: number | null
         }
         Relationships: [
@@ -293,6 +326,7 @@ export type Database = {
           status: Database["public"]["Enums"]["task_status"] | null
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           actual_hours?: number | null
@@ -311,6 +345,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"] | null
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           actual_hours?: number | null
@@ -329,6 +364,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
