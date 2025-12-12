@@ -67,6 +67,7 @@ export function useCreateProposal() {
   return useMutation({
     mutationFn: async (proposal: { 
       title: string; 
+      description?: string;
       client_name?: string;
       client_email?: string;
       value?: number;
@@ -74,6 +75,12 @@ export function useCreateProposal() {
       stage?: ProposalStage;
       probability_to_close?: number;
       draft_date?: string;
+      sent_date?: string;
+      review_date?: string;
+      negotiation_date?: string;
+      revision_date?: string;
+      approval_date?: string;
+      signed_date?: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
