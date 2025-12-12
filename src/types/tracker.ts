@@ -65,6 +65,7 @@ export interface Proposal {
   id: string;
   project_id?: string;
   title: string;
+  description?: string;
   client_name?: string;
   client_email?: string;
   value?: number;

@@ -116,6 +116,7 @@ export type Database = {
           client_email: string | null
           client_name: string | null
           created_at: string
+          description: string | null
           draft_date: string | null
           id: string
           negotiation_date: string | null
@@ -137,6 +138,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string | null
           created_at?: string
+          description?: string | null
           draft_date?: string | null
           id?: string
           negotiation_date?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           client_email?: string | null
           client_name?: string | null
           created_at?: string
+          description?: string | null
           draft_date?: string | null
           id?: string
           negotiation_date?: string | null
