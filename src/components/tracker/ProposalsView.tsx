@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus, DollarSign, TrendingUp, Calendar } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, Calendar, ChevronRight } from 'lucide-react';
 import { Proposal, Project, PROPOSAL_STAGE_LABELS, ProposalStage } from '@/types/tracker';
 import { useCreateProposal, useUpdateProposal } from '@/hooks/useProposals';
+import { ProposalDetailDrawer } from './ProposalDetailDrawer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -57,6 +58,7 @@ const initialProposalState: NewProposalState = {
 export function ProposalsView({ proposals, projects, isLoading }: ProposalsViewProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newProposal, setNewProposal] = useState<NewProposalState>(initialProposalState);
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   
   const createProposal = useCreateProposal();
   const updateProposal = useUpdateProposal();
@@ -329,7 +331,11 @@ export function ProposalsView({ proposals, projects, isLoading }: ProposalsViewP
             </div>
           ) : (
             proposals.map((proposal) => (
-              <div key={proposal.id} className="p-4 hover:bg-muted/20 transition-colors">
+              <div 
+                key={proposal.id} 
+                className="p-4 hover:bg-muted/20 transition-colors cursor-pointer"
+                onClick={() => setSelectedProposal(proposal)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h4 className="font-medium">{proposal.title}</h4>
@@ -344,10 +350,18 @@ export function ProposalsView({ proposals, projects, isLoading }: ProposalsViewP
                       {PROPOSAL_STAGE_LABELS[proposal.stage]}
                     </span>
                     {proposal.stage !== 'contract_signed' && (
-                      <Button size="sm" variant="outline" onClick={() => advanceStage(proposal)}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          advanceStage(proposal);
+                        }}
+                      >
                         Advance
                       </Button>
                     )}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </div>
               </div>
@@ -355,6 +369,14 @@ export function ProposalsView({ proposals, projects, isLoading }: ProposalsViewP
           )}
         </div>
       </div>
+
+      {/* Proposal Detail Drawer */}
+      <ProposalDetailDrawer
+        proposal={selectedProposal}
+        isOpen={!!selectedProposal}
+        onClose={() => setSelectedProposal(null)}
+        projects={projects}
+      />
     </div>
   );
 }
