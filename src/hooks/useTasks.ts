@@ -15,6 +15,7 @@ export function useTasks(projectId?: string) {
         { event: '*', schema: 'public', table: 'tasks' },
         () => {
           queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
         }
       )
       .subscribe();

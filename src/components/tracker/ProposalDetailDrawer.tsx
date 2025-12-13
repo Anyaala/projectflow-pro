@@ -218,17 +218,18 @@ export function ProposalDetailDrawer({ proposal, isOpen, onClose, projects }: Pr
                   <div className="mt-6 pt-6 border-t border-border/50">
                     <Button 
                       className="w-full"
+                      disabled={updateProposal.isPending}
                       onClick={() => {
                         const nextStage = STAGE_ORDER[currentStageIndex + 1];
                         const dateField = STAGE_DATE_FIELDS[nextStage];
-                        setEditedProposal({
-                          ...editedProposal,
+                        updateProposal.mutate({
+                          id: proposal.id,
                           stage: nextStage,
                           [dateField]: new Date().toISOString().split('T')[0],
                         });
                       }}
                     >
-                      Advance to {PROPOSAL_STAGE_LABELS[STAGE_ORDER[currentStageIndex + 1]]}
+                      {updateProposal.isPending ? 'Advancing...' : `Advance to ${PROPOSAL_STAGE_LABELS[STAGE_ORDER[currentStageIndex + 1]]}`}
                     </Button>
                   </div>
                 )}

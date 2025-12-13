@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Task, Project, PRIORITY_LABELS } from '@/types/tracker';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, parseISO, differenceInDays, isWithinInterval, startOfDay, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, parseISO, differenceInDays, startOfDay, addDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface GanttViewProps {
   tasks: Task[];
@@ -33,19 +34,36 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
   }, [tasks]);
 
   const getTaskPosition = (task: Task) => {
-    const startDate = task.start_date ? parseISO(task.start_date) : task.due_date ? parseISO(task.due_date) : null;
-    const endDate = task.due_date ? parseISO(task.due_date) : task.start_date ? addDays(parseISO(task.start_date), 1) : null;
+    const taskStart = task.start_date ? parseISO(task.start_date) : task.due_date ? parseISO(task.due_date) : null;
+    const taskEnd = task.due_date ? parseISO(task.due_date) : task.start_date ? addDays(parseISO(task.start_date), 1) : null;
     
-    if (!startDate || !endDate) return null;
+    if (!taskStart || !taskEnd) return null;
+    
+    // Check if task overlaps with current month
+    const taskStartDay = startOfDay(taskStart);
+    const taskEndDay = startOfDay(taskEnd);
+    
+    if (taskEndDay < monthStart || taskStartDay > monthEnd) {
+      return null; // Task doesn't overlap with current month
+    }
+    
+    // Clamp task dates to current month boundaries
+    const visibleStart = taskStartDay < monthStart ? monthStart : taskStartDay;
+    const visibleEnd = taskEndDay > monthEnd ? monthEnd : taskEndDay;
     
     const dayWidth = 100 / days.length;
-    const startDiff = differenceInDays(startOfDay(startDate), monthStart);
-    const duration = differenceInDays(endDate, startDate) + 1;
+    const startDiff = differenceInDays(visibleStart, monthStart);
+    const duration = differenceInDays(visibleEnd, visibleStart) + 1;
     
-    const left = Math.max(0, startDiff * dayWidth);
-    const width = Math.min(100 - left, duration * dayWidth);
+    const left = startDiff * dayWidth;
+    const width = duration * dayWidth;
     
-    return { left: `${left}%`, width: `${Math.max(width, dayWidth)}%` };
+    return { 
+      left: `${Math.max(0, left)}%`, 
+      width: `${Math.max(width, dayWidth)}%`,
+      startsBeforeMonth: taskStartDay < monthStart,
+      endsAfterMonth: taskEndDay > monthEnd,
+    };
   };
 
   const getPriorityColor = (priority: string) => {
@@ -167,17 +185,21 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                     {/* Task bar */}
                     {position && (
                       <div
-                        className="gantt-bar top-3 cursor-pointer"
+                        className={cn(
+                          "gantt-bar top-3 cursor-pointer",
+                          position.startsBeforeMonth && "rounded-l-none",
+                          position.endsAfterMonth && "rounded-r-none"
+                        )}
                         style={{
                           left: position.left,
                           width: position.width,
                           backgroundColor: getProjectColor(task.project_id),
                         }}
                         onClick={() => onTaskClick(task)}
-                        title={`${task.title} - ${PRIORITY_LABELS[task.priority]}`}
+                        title={`${task.title} - ${PRIORITY_LABELS[task.priority]}${task.start_date ? ` | Start: ${format(parseISO(task.start_date), 'MMM d')}` : ''}${task.due_date ? ` | Due: ${format(parseISO(task.due_date), 'MMM d')}` : ''}`}
                       >
                         <span className="text-xs text-primary-foreground px-2 truncate block leading-6">
-                          {task.title}
+                          {position.startsBeforeMonth ? '◀ ' : ''}{task.title}{position.endsAfterMonth ? ' ▶' : ''}
                         </span>
                       </div>
                     )}

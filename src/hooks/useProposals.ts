@@ -15,6 +15,7 @@ export function useProposals() {
         { event: '*', schema: 'public', table: 'proposals' },
         () => {
           queryClient.invalidateQueries({ queryKey: ['proposals'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
         }
       )
       .subscribe();
