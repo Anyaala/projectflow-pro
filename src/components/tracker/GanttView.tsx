@@ -22,37 +22,46 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
+  // Parse date string as local date (not UTC) to avoid timezone issues
+  const parseLocalDate = (dateStr: string): Date => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   // Filter tasks that have start and due dates
   const ganttTasks = useMemo(() => {
     return tasks
       .filter(t => t.start_date || t.due_date)
       .sort((a, b) => {
-        const aStart = a.start_date ? parseISO(a.start_date) : a.due_date ? parseISO(a.due_date) : new Date();
-        const bStart = b.start_date ? parseISO(b.start_date) : b.due_date ? parseISO(b.due_date) : new Date();
+        const aStart = a.start_date ? parseLocalDate(a.start_date) : a.due_date ? parseLocalDate(a.due_date) : new Date();
+        const bStart = b.start_date ? parseLocalDate(b.start_date) : b.due_date ? parseLocalDate(b.due_date) : new Date();
         return aStart.getTime() - bStart.getTime();
       });
   }, [tasks]);
 
   const getTaskPosition = (task: Task) => {
-    const taskStart = task.start_date ? parseISO(task.start_date) : task.due_date ? parseISO(task.due_date) : null;
-    const taskEnd = task.due_date ? parseISO(task.due_date) : task.start_date ? addDays(parseISO(task.start_date), 1) : null;
+    const taskStart = task.start_date ? parseLocalDate(task.start_date) : task.due_date ? parseLocalDate(task.due_date) : null;
+    const taskEnd = task.due_date ? parseLocalDate(task.due_date) : task.start_date ? parseLocalDate(task.start_date) : null;
     
     if (!taskStart || !taskEnd) return null;
     
-    // Check if task overlaps with current month
+    // Normalize to start of day for consistent comparison
     const taskStartDay = startOfDay(taskStart);
     const taskEndDay = startOfDay(taskEnd);
+    const monthStartDay = startOfDay(monthStart);
+    const monthEndDay = startOfDay(monthEnd);
     
-    if (taskEndDay < monthStart || taskStartDay > monthEnd) {
+    // Check if task overlaps with current month
+    if (taskEndDay < monthStartDay || taskStartDay > monthEndDay) {
       return null; // Task doesn't overlap with current month
     }
     
     // Clamp task dates to current month boundaries
-    const visibleStart = taskStartDay < monthStart ? monthStart : taskStartDay;
-    const visibleEnd = taskEndDay > monthEnd ? monthEnd : taskEndDay;
+    const visibleStart = taskStartDay < monthStartDay ? monthStartDay : taskStartDay;
+    const visibleEnd = taskEndDay > monthEndDay ? monthEndDay : taskEndDay;
     
     const dayWidth = 100 / days.length;
-    const startDiff = differenceInDays(visibleStart, monthStart);
+    const startDiff = differenceInDays(visibleStart, monthStartDay);
     const duration = differenceInDays(visibleEnd, visibleStart) + 1;
     
     const left = startDiff * dayWidth;
@@ -61,8 +70,8 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
     return { 
       left: `${Math.max(0, left)}%`, 
       width: `${Math.max(width, dayWidth)}%`,
-      startsBeforeMonth: taskStartDay < monthStart,
-      endsAfterMonth: taskEndDay > monthEnd,
+      startsBeforeMonth: taskStartDay < monthStartDay,
+      endsAfterMonth: taskEndDay > monthEndDay,
     };
   };
 
