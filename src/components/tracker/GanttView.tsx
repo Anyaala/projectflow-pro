@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Task, Project, PRIORITY_LABELS } from '@/types/tracker';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, parseISO, differenceInDays, startOfDay, addDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, differenceInDays, startOfDay, getDate } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface GanttViewProps {
@@ -22,6 +22,9 @@ const parseLocalDate = (dateStr: string): Date => {
 };
 
 export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedProjectId, onProjectChange }: GanttViewProps) {
+  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
   // Filter tasks that have start and due dates
   const ganttTasks = useMemo(() => {
     return tasks
@@ -33,19 +36,17 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
       });
   }, [tasks]);
 
-  // Initialize to the month of the first task, or current date if no tasks
-  const getInitialMonth = () => {
-    if (ganttTasks.length > 0) {
+  // Auto-navigate to the first task's month when tasks load
+  useEffect(() => {
+    if (!hasInitialized && ganttTasks.length > 0) {
       const firstTask = ganttTasks[0];
       const dateStr = firstTask.start_date || firstTask.due_date;
       if (dateStr) {
-        return startOfMonth(parseLocalDate(dateStr));
+        setCurrentMonth(startOfMonth(parseLocalDate(dateStr)));
+        setHasInitialized(true);
       }
     }
-    return startOfMonth(new Date());
-  };
-
-  const [currentMonth, setCurrentMonth] = useState(getInitialMonth);
+  }, [ganttTasks, hasInitialized]);
   
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -57,33 +58,41 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
     
     if (!taskStart || !taskEnd) return null;
     
-    // Normalize to start of day for consistent comparison
-    const taskStartDay = startOfDay(taskStart);
-    const taskEndDay = startOfDay(taskEnd);
-    const monthStartDay = startOfDay(monthStart);
-    const monthEndDay = startOfDay(monthEnd);
+    // Get day of month (1-based) for positioning
+    const taskStartDayOfMonth = getDate(taskStart);
+    const taskEndDayOfMonth = getDate(taskEnd);
+    const taskStartMonth = taskStart.getMonth();
+    const taskEndMonth = taskEnd.getMonth();
+    const taskStartYear = taskStart.getFullYear();
+    const taskEndYear = taskEnd.getFullYear();
+    const currentMonthNum = currentMonth.getMonth();
+    const currentYear = currentMonth.getFullYear();
     
     // Check if task overlaps with current month
-    if (taskEndDay < monthStartDay || taskStartDay > monthEndDay) {
+    const taskEndsBeforeMonth = taskEndYear < currentYear || (taskEndYear === currentYear && taskEndMonth < currentMonthNum);
+    const taskStartsAfterMonth = taskStartYear > currentYear || (taskStartYear === currentYear && taskStartMonth > currentMonthNum);
+    
+    if (taskEndsBeforeMonth || taskStartsAfterMonth) {
       return null; // Task doesn't overlap with current month
     }
     
-    // Clamp task dates to current month boundaries
-    const visibleStart = taskStartDay < monthStartDay ? monthStartDay : taskStartDay;
-    const visibleEnd = taskEndDay > monthEndDay ? monthEndDay : taskEndDay;
+    // Calculate visible start day (1-based index in the month)
+    const startsBeforeMonth = taskStartYear < currentYear || (taskStartYear === currentYear && taskStartMonth < currentMonthNum);
+    const endsAfterMonth = taskEndYear > currentYear || (taskEndYear === currentYear && taskEndMonth > currentMonthNum);
     
+    const visibleStartDay = startsBeforeMonth ? 1 : taskStartDayOfMonth;
+    const visibleEndDay = endsAfterMonth ? days.length : taskEndDayOfMonth;
+    
+    // Calculate position based on day columns (0-indexed for CSS)
     const dayWidth = 100 / days.length;
-    const startDiff = differenceInDays(visibleStart, monthStartDay);
-    const duration = differenceInDays(visibleEnd, visibleStart) + 1;
-    
-    const left = startDiff * dayWidth;
-    const width = duration * dayWidth;
+    const left = (visibleStartDay - 1) * dayWidth;
+    const width = (visibleEndDay - visibleStartDay + 1) * dayWidth;
     
     return { 
       left: `${Math.max(0, left)}%`, 
       width: `${Math.max(width, dayWidth)}%`,
-      startsBeforeMonth: taskStartDay < monthStartDay,
-      endsAfterMonth: taskEndDay > monthEndDay,
+      startsBeforeMonth,
+      endsAfterMonth,
     };
   };
 
@@ -217,7 +226,7 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                           backgroundColor: getProjectColor(task.project_id),
                         }}
                         onClick={() => onTaskClick(task)}
-                        title={`${task.title} - ${PRIORITY_LABELS[task.priority]}${task.start_date ? ` | Start: ${format(parseISO(task.start_date), 'MMM d')}` : ''}${task.due_date ? ` | Due: ${format(parseISO(task.due_date), 'MMM d')}` : ''}`}
+                        title={`${task.title} - ${PRIORITY_LABELS[task.priority]}${task.start_date ? ` | Start: ${format(parseLocalDate(task.start_date), 'MMM d')}` : ''}${task.due_date ? ` | Due: ${format(parseLocalDate(task.due_date), 'MMM d')}` : ''}`}
                       >
                         <span className="text-xs text-primary-foreground px-2 truncate block leading-6">
                           {position.startsBeforeMonth ? '◀ ' : ''}{task.title}{position.endsAfterMonth ? ' ▶' : ''}
