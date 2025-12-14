@@ -15,19 +15,13 @@ interface GanttViewProps {
   onProjectChange: (projectId: string | undefined) => void;
 }
 
-export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedProjectId, onProjectChange }: GanttViewProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  
-  // Parse date string as local date (not UTC) to avoid timezone issues
-  const parseLocalDate = (dateStr: string): Date => {
-    const [year, month, day] = dateStr.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  };
+// Parse date string as local date (not UTC) to avoid timezone issues
+const parseLocalDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
 
+export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedProjectId, onProjectChange }: GanttViewProps) {
   // Filter tasks that have start and due dates
   const ganttTasks = useMemo(() => {
     return tasks
@@ -38,6 +32,24 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
         return aStart.getTime() - bStart.getTime();
       });
   }, [tasks]);
+
+  // Initialize to the month of the first task, or current date if no tasks
+  const getInitialMonth = () => {
+    if (ganttTasks.length > 0) {
+      const firstTask = ganttTasks[0];
+      const dateStr = firstTask.start_date || firstTask.due_date;
+      if (dateStr) {
+        return startOfMonth(parseLocalDate(dateStr));
+      }
+    }
+    return startOfMonth(new Date());
+  };
+
+  const [currentMonth, setCurrentMonth] = useState(getInitialMonth);
+  
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getTaskPosition = (task: Task) => {
     const taskStart = task.start_date ? parseLocalDate(task.start_date) : task.due_date ? parseLocalDate(task.due_date) : null;
