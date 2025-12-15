@@ -160,11 +160,14 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
           <div className="w-64 flex-shrink-0 p-3 border-r border-border/50 bg-muted/30">
             <span className="font-medium text-sm">Task Name</span>
           </div>
-          <div className="flex-1 flex">
+          <div 
+            className="flex-1 grid"
+            style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}
+          >
             {days.map((day, i) => (
               <div
                 key={i}
-                className="flex-1 min-w-[30px] p-2 text-center text-xs border-r border-border/30 last:border-r-0"
+                className="min-w-[30px] p-2 text-center text-xs border-r border-border/30 last:border-r-0"
                 style={{ backgroundColor: day.getDay() === 0 || day.getDay() === 6 ? 'hsl(var(--muted) / 0.3)' : 'transparent' }}
               >
                 <div className="font-medium">{format(day, 'd')}</div>
@@ -203,11 +206,14 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                   </div>
                   <div className="flex-1 relative min-h-[50px]">
                     {/* Grid lines */}
-                    <div className="absolute inset-0 flex pointer-events-none">
+                    <div 
+                      className="absolute inset-0 grid pointer-events-none"
+                      style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}
+                    >
                       {days.map((day, i) => (
                         <div
                           key={i}
-                          className="flex-1 min-w-[30px] border-r border-border/20 last:border-r-0"
+                          className="min-w-[30px] border-r border-border/20 last:border-r-0"
                           style={{ backgroundColor: day.getDay() === 0 || day.getDay() === 6 ? 'hsl(var(--muted) / 0.2)' : 'transparent' }}
                         />
                       ))}
