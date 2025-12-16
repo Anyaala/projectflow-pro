@@ -157,8 +157,8 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
       <div className="glass-card overflow-hidden">
         {/* Header with days */}
         <div className="flex border-b border-border/50">
-          <div className="w-64 flex-shrink-0 p-3 border-r border-border/50 bg-muted/30">
-            <span className="font-medium text-sm">Task Name</span>
+          <div className="w-40 flex-shrink-0 p-2 border-r border-border/50 bg-muted/30">
+            <span className="font-medium text-xs">Task Name</span>
           </div>
           <div 
             className="flex-1 grid"
@@ -167,11 +167,11 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
             {days.map((day, i) => (
               <div
                 key={i}
-                className="min-w-[30px] p-2 text-center text-xs border-r border-border/30 last:border-r-0"
+                className="py-1 px-0.5 text-center border-r border-border/30 last:border-r-0"
                 style={{ backgroundColor: day.getDay() === 0 || day.getDay() === 6 ? 'hsl(var(--muted) / 0.3)' : 'transparent' }}
               >
-                <div className="font-medium">{format(day, 'd')}</div>
-                <div className="text-muted-foreground">{format(day, 'EEE')}</div>
+                <div className="font-medium text-[10px]">{format(day, 'd')}</div>
+                <div className="text-muted-foreground text-[9px]">{format(day, 'EEEEE')}</div>
               </div>
             ))}
           </div>
@@ -190,21 +190,21 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
               return (
                 <div key={task.id} className="flex hover:bg-muted/20 transition-colors">
                   <div 
-                    className="w-64 flex-shrink-0 p-3 border-r border-border/50 cursor-pointer hover:bg-muted/30"
+                    className="w-40 flex-shrink-0 p-2 border-r border-border/50 cursor-pointer hover:bg-muted/30"
                     onClick={() => onTaskClick(task)}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full priority-${task.priority}`} />
-                      <span className="font-medium text-sm truncate">{task.title}</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-1.5 h-1.5 rounded-full priority-${task.priority}`} />
+                      <span className="font-medium text-xs truncate">{task.title}</span>
                     </div>
                     {project && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: project.color }} />
-                        <span className="text-xs text-muted-foreground">{project.name}</span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.color }} />
+                        <span className="text-[10px] text-muted-foreground truncate">{project.name}</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 relative min-h-[50px]">
+                  <div className="flex-1 relative min-h-[40px]">
                     {/* Grid lines */}
                     <div 
                       className="absolute inset-0 grid pointer-events-none"
@@ -213,7 +213,7 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                       {days.map((day, i) => (
                         <div
                           key={i}
-                          className="min-w-[30px] border-r border-border/20 last:border-r-0"
+                          className="border-r border-border/20 last:border-r-0"
                           style={{ backgroundColor: day.getDay() === 0 || day.getDay() === 6 ? 'hsl(var(--muted) / 0.2)' : 'transparent' }}
                         />
                       ))}
@@ -222,7 +222,7 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                     {position && (
                       <div
                         className={cn(
-                          "gantt-bar top-3 cursor-pointer",
+                          "gantt-bar top-2 cursor-pointer h-5",
                           position.startsBeforeMonth && "rounded-l-none",
                           position.endsAfterMonth && "rounded-r-none"
                         )}
@@ -234,8 +234,8 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
                         onClick={() => onTaskClick(task)}
                         title={`${task.title} - ${PRIORITY_LABELS[task.priority]}${task.start_date ? ` | Start: ${format(parseLocalDate(task.start_date), 'MMM d')}` : ''}${task.due_date ? ` | Due: ${format(parseLocalDate(task.due_date), 'MMM d')}` : ''}`}
                       >
-                        <span className="text-xs text-primary-foreground px-2 truncate block leading-6">
-                          {position.startsBeforeMonth ? '◀ ' : ''}{task.title}{position.endsAfterMonth ? ' ▶' : ''}
+                        <span className="text-[10px] text-primary-foreground px-1 truncate block leading-5">
+                          {position.startsBeforeMonth ? '◀' : ''}{position.endsAfterMonth ? '▶' : ''}
                         </span>
                       </div>
                     )}
@@ -248,12 +248,12 @@ export function GanttView({ tasks, projects, isLoading, onTaskClick, selectedPro
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-6 text-sm">
+      <div className="flex items-center gap-4 text-xs">
         <span className="text-muted-foreground">Priority:</span>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full priority-low" /><span>Low</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full priority-medium" /><span>Medium</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full priority-high" /><span>High</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-full priority-critical" /><span>Critical</span></div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full priority-low" /><span>Low</span></div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full priority-medium" /><span>Medium</span></div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full priority-high" /><span>High</span></div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full priority-critical" /><span>Critical</span></div>
       </div>
     </div>
   );
