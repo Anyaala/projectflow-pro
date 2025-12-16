@@ -228,7 +228,7 @@
 
 /* Gantt styles */
 .gantt-bar {
-  @apply absolute h-6 rounded-md transition-all duration-200;
+  @apply absolute rounded-md transition-all duration-200;
 }
 
 .gantt-bar:hover {
